@@ -285,9 +285,10 @@ void StartGame(RenderWindow &window, int numPlayers)
     backgroundSprite.setTexture(backgroundImage);
 
     // player movement support
-    IntRect texRect(0, CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    IntRect texRect1(0, CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    IntRect texRect2(0, CELL_SIZE, CELL_SIZE, CELL_SIZE);
     int keyCooldown = 5;
-    int keyTimer = 0;
+    int keyTimer1 = 0;
     int keyTimer2 = 0; // Separate timer for player 2
 
     // car spawner support
@@ -321,15 +322,21 @@ void StartGame(RenderWindow &window, int numPlayers)
 
         // Handle player 1 movement
         Frog *player1 = playerManager.getPlayer(0);
-        player1->texRect = texRect;
-        PlayerMovement(*player1, texRect, keyCooldown, keyTimer, sound, 0);
+        if (player1 && !player1->isDead && !player1->hasWon)
+        {
+            player1->texRect = texRect1;
+            PlayerMovement(*player1, texRect1, keyCooldown, keyTimer1, sound, 0);
+        }
 
         // Handle player 2 movement if 2-player mode
         if (numPlayers == 2)
         {
             Frog *player2 = playerManager.getPlayer(1);
-            player2->texRect = texRect;
-            PlayerMovement(*player2, texRect, keyCooldown, keyTimer2, sound, 1);
+            if (player2 && !player2->isDead && !player2->hasWon)
+            {
+                player2->texRect = texRect2;
+                PlayerMovement(*player2, texRect2, keyCooldown, keyTimer2, sound, 1);
+            }
         }
 
         // Check collisions and update game state for all players
@@ -358,6 +365,7 @@ void StartGame(RenderWindow &window, int numPlayers)
                 if (player->getSprite().getGlobalBounds().intersects(cars[j].getSprite().getGlobalBounds()))
                 {
                     player->isDead = true;
+                    break; // Exit the loop once a collision is detected
                 }
             }
 
