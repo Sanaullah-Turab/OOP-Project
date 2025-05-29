@@ -12,12 +12,14 @@ class Frog
 private:
 	Sprite sprite;
 	Texture texture;
-	RenderWindow& window;
+	RenderWindow &window;
+
 public:
 	bool hasWon;
+	bool isDead; // New property to track if frog is dead
 	IntRect texRect;
-	Frog(RenderWindow& window);
-	Sprite getSprite(){ return sprite;}
+	Frog(RenderWindow &window);
+	Sprite getSprite() { return sprite; }
 	void MoveUp();
 	void MoveDown();
 	void MoveLeft();
@@ -25,6 +27,6 @@ public:
 	void Move(int x, int y);
 	void Draw();
 	void Reset();
+	void Reset(float xOffset); // New overloaded Reset method with custom x position
 	void MoveWithLog(Log log);
 };
-
