@@ -7,6 +7,24 @@ PlayerManager::PlayerManager(RenderWindow &window) : window(window), numPlayers(
     // Create initial player
     players.push_back(new Frog(window));
     scores.push_back(0);
+    deathClocks.push_back(Clock());
+    playerRemoved.push_back(false);
+
+    // Initialize font
+    if (!messageFont.loadFromFile("Resources/Fonts/Goldman-Regular.ttf"))
+    {
+        std::cout << "Could not load font for death messages" << std::endl;
+    }
+
+    // Create death message (initialized but not shown yet)
+    Text deathText;
+    deathText.setFont(messageFont);
+    deathText.setCharacterSize(24);
+    deathText.setFillColor(Color::Red);
+    deathText.setString("Player 1 Died!");
+    deathText.setPosition(WINDOW_WIDTH / 2 - deathText.getGlobalBounds().width / 2, 100);
+    deathMessages.push_back(deathText);
+
     gameClock.restart();
 }
 
@@ -19,6 +37,9 @@ PlayerManager::~PlayerManager()
     }
     players.clear();
     scores.clear();
+    deathClocks.clear();
+    playerRemoved.clear();
+    deathMessages.clear();
 }
 
 void PlayerManager::setNumPlayers(int num)
@@ -35,6 +56,9 @@ void PlayerManager::setNumPlayers(int num)
     }
     players.clear();
     scores.clear();
+    deathClocks.clear();
+    playerRemoved.clear();
+    deathMessages.clear();
 
     numPlayers = num;
 
@@ -43,6 +67,17 @@ void PlayerManager::setNumPlayers(int num)
     {
         players.push_back(new Frog(window));
         scores.push_back(0);
+        deathClocks.push_back(Clock());
+        playerRemoved.push_back(false);
+
+        // Create death message for each player
+        Text deathText;
+        deathText.setFont(messageFont);
+        deathText.setCharacterSize(24);
+        deathText.setFillColor(Color::Red);
+        deathText.setString("Player " + std::to_string(i + 1) + " Died!");
+        deathText.setPosition(WINDOW_WIDTH / 2 - deathText.getGlobalBounds().width / 2, 100 + i * 30);
+        deathMessages.push_back(deathText);
     }
 
     // If two players, offset the second player's starting position
@@ -53,11 +88,6 @@ void PlayerManager::setNumPlayers(int num)
     }
 
     gameClock.restart();
-}
-
-int PlayerManager::getNumPlayers() const
-{
-    return numPlayers;
 }
 
 void PlayerManager::resetPlayers()
@@ -72,6 +102,10 @@ void PlayerManager::resetPlayers()
         {
             players[i]->Reset(WINDOW_WIDTH / 2 + CELL_SIZE * 4); // Offset for player 2
         }
+
+        players[i]->isDead = false;
+        playerRemoved[i] = false;
+        deathClocks[i].restart();
     }
 
     scores.clear();
@@ -90,10 +124,54 @@ void PlayerManager::updateScores()
     // Update scores for active players (not won yet and not dead)
     for (int i = 0; i < numPlayers; i++)
     {
-        if (!players[i]->hasWon)
+        if (!players[i]->hasWon && !players[i]->isDead)
         {
             // Points based on time survived (1 point per second)
             scores[i] = static_cast<int>(timeElapsed);
+        }
+    }
+}
+
+void PlayerManager::checkForDeaths()
+{
+    // Check for new deaths and restart their death clocks
+    for (int i = 0; i < numPlayers; i++)
+    {
+        if (players[i]->isDead && !playerRemoved[i])
+        {
+            // If this is a new death, restart the death clock
+            if (deathClocks[i].getElapsedTime().asSeconds() > 10)
+            {
+                deathClocks[i].restart();
+            }
+        }
+    }
+}
+
+void PlayerManager::updateDeathTimers()
+{
+    // Check death timers and remove players after delay
+    for (int i = 0; i < numPlayers; i++)
+    {
+        if (players[i]->isDead && !playerRemoved[i])
+        {
+            // If 3 seconds have passed since death, remove the player
+            if (deathClocks[i].getElapsedTime().asSeconds() >= 3.0f)
+            {
+                playerRemoved[i] = true;
+            }
+        }
+    }
+}
+
+void PlayerManager::drawDeathMessages()
+{
+    // Draw death messages for dead players that haven't been removed yet
+    for (int i = 0; i < numPlayers; i++)
+    {
+        if (players[i]->isDead && !playerRemoved[i])
+        {
+            window.draw(deathMessages[i]);
         }
     }
 }
@@ -148,11 +226,21 @@ int PlayerManager::getScore(int index) const
     return 0;
 }
 
+// Make sure this method is properly implemented:
+int PlayerManager::getNumPlayers() const
+{
+    return numPlayers;
+}
+
 void PlayerManager::drawPlayers()
 {
-    for (auto *player : players)
+    for (int i = 0; i < numPlayers; i++)
     {
-        player->Draw();
+        // Only draw players that are not dead or not yet removed
+        if (!players[i]->isDead || !playerRemoved[i])
+        {
+            players[i]->Draw();
+        }
     }
 }
 
@@ -173,6 +261,17 @@ void PlayerManager::drawScores()
         scoreText.setFillColor(Color::White);
 
         std::string scoreStr = "Player " + std::to_string(i + 1) + ": " + std::to_string(scores[i]);
+
+        // Add status if player is dead or has won
+        if (players[i]->isDead)
+        {
+            scoreStr += " (Dead)";
+        }
+        else if (players[i]->hasWon)
+        {
+            scoreStr += " (Won!)";
+        }
+
         scoreText.setString(scoreStr);
 
         // Position the score text
@@ -185,9 +284,9 @@ void PlayerManager::drawScores()
 
 bool PlayerManager::isAnyPlayerAlive() const
 {
-    for (auto *player : players)
+    for (int i = 0; i < numPlayers; i++)
     {
-        if (!player->hasWon) // If a player hasn't won yet, they're still in play
+        if (!players[i]->isDead && !players[i]->hasWon)
         {
             return true;
         }
@@ -197,9 +296,9 @@ bool PlayerManager::isAnyPlayerAlive() const
 
 bool PlayerManager::haveAllPlayersWon() const
 {
-    for (auto *player : players)
+    for (int i = 0; i < numPlayers; i++)
     {
-        if (!player->hasWon) // If any player hasn't won, return false
+        if (!players[i]->hasWon && !players[i]->isDead)
         {
             return false;
         }

@@ -320,6 +320,12 @@ void StartGame(RenderWindow &window, int numPlayers)
         // Update player scores
         playerManager.updateScores();
 
+        // Check for new deaths
+        playerManager.checkForDeaths();
+
+        // Update death timers
+        playerManager.updateDeathTimers();
+
         // Handle player 1 movement
         Frog *player1 = playerManager.getPlayer(0);
         if (player1 && !player1->isDead && !player1->hasWon)
@@ -365,7 +371,7 @@ void StartGame(RenderWindow &window, int numPlayers)
                 if (player->getSprite().getGlobalBounds().intersects(cars[j].getSprite().getGlobalBounds()))
                 {
                     player->isDead = true;
-                    break; // Exit the loop once a collision is detected
+                    break;
                 }
             }
 
@@ -408,23 +414,26 @@ void StartGame(RenderWindow &window, int numPlayers)
         // Draw scores
         playerManager.drawScores();
 
+        // Draw death messages
+        playerManager.drawDeathMessages();
+
         // Display
         window.display();
 
         // Check game over conditions
-        bool allPlayersDead = true;
+        bool allPlayersFinished = true; // Either dead or won
         for (int i = 0; i < numPlayers; i++)
         {
             Frog *player = playerManager.getPlayer(i);
             if (!player->isDead && !player->hasWon)
             {
-                allPlayersDead = false;
+                allPlayersFinished = false;
                 break;
             }
         }
 
         // Game is over if all players are either dead or have won
-        if (allPlayersDead || playerManager.haveAllPlayersWon())
+        if (allPlayersFinished)
         {
             // Save scores if any player has won
             playerManager.saveScores();
@@ -717,25 +726,28 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
     }
     gameOverText.setPosition((WINDOW_WIDTH - gameOverText.getGlobalBounds().width) / 2, 130);
 
-    // Show scores if any player won
-    Text scoreText;
-    scoreText.setCharacterSize(30);
-    scoreText.setFillColor(Color::White);
-    scoreText.setFont(gameOverFont);
+    // Show results for all players
+    Text resultsText;
+    resultsText.setCharacterSize(30);
+    resultsText.setFillColor(Color::White);
+    resultsText.setFont(gameOverFont);
 
-    if (anyPlayerWon)
+    std::string resultsStr = "Results:";
+    for (int i = 0; i < playerManager.getNumPlayers(); i++)
     {
-        std::string scoreStr = "Scores:";
-        for (int i = 0; i < playerManager.getNumPlayers(); i++)
+        Frog *player = playerManager.getPlayer(i);
+        resultsStr += "\nPlayer " + std::to_string(i + 1) + ": ";
+        if (player->hasWon)
         {
-            if (playerManager.getPlayer(i)->hasWon)
-            {
-                scoreStr += "\nPlayer " + std::to_string(i + 1) + ": " + std::to_string(playerManager.getScore(i));
-            }
+            resultsStr += std::to_string(playerManager.getScore(i)) + " pts (Won!)";
         }
-        scoreText.setString(scoreStr);
-        scoreText.setPosition((WINDOW_WIDTH - scoreText.getGlobalBounds().width) / 2, 220);
+        else
+        {
+            resultsStr += std::to_string(playerManager.getScore(i)) + " pts (Died)";
+        }
     }
+    resultsText.setString(resultsStr);
+    resultsText.setPosition((WINDOW_WIDTH - resultsText.getGlobalBounds().width) / 2, 220);
 
     int choice = 0;
     int keyTimer = 0;
@@ -796,8 +808,7 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
         window.draw(gameOverSprite);
         window.draw(gameOverRectangele);
         window.draw(gameOverText);
-        if (anyPlayerWon)
-            window.draw(scoreText);
+        window.draw(resultsText);
         window.draw(retryText);
         window.draw(exitText);
 
