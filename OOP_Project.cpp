@@ -701,24 +701,53 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
 
     // GameOver Text initialization
     Text gameOverText;
-    gameOverText.setCharacterSize(80);
+    gameOverText.setCharacterSize(70);
     gameOverText.setFillColor(Color::Green);
     gameOverText.setFont(gameOverFont);
 
-    if (anyPlayerWon)
+    // Track the overall winner (player with highest score)
+    int winnerIndex = -1;
+    int highestScore = -1;
+    int numWinners = 0;
+
+    // Count how many players won and find the player with highest score
+    for (int i = 0; i < playerManager.getNumPlayers(); i++)
     {
-        // Display which player(s) won
-        std::string winText = "";
-        for (int i = 0; i < playerManager.getNumPlayers(); i++)
+        if (playerManager.getPlayer(i)->hasWon)
         {
-            if (playerManager.getPlayer(i)->hasWon)
+            numWinners++;
+            int score = playerManager.getScore(i);
+            if (score > highestScore)
             {
-                if (winText != "")
-                    winText += " & ";
-                winText += "P" + std::to_string(i + 1);
+                highestScore = score;
+                winnerIndex = i;
             }
         }
-        gameOverText.setString(winText + " Won!");
+    }
+
+    if (anyPlayerWon)
+    {
+        // If only one player won, declare that player the winner
+        if (numWinners == 1)
+        {
+            gameOverText.setString("P" + std::to_string(winnerIndex + 1) + " Won!");
+        }
+        // If multiple players won (in 2-player mode this means both players)
+        else if (numWinners > 1)
+        {
+            // If there's a tie (both players have the same score)
+            if (playerManager.getNumPlayers() == 2 &&
+                playerManager.getScore(0) == playerManager.getScore(1) &&
+                playerManager.getPlayer(0)->hasWon && playerManager.getPlayer(1)->hasWon)
+            {
+                gameOverText.setString("It's a Tie!");
+            }
+            // Otherwise, declare the player with higher score as winner
+            else
+            {
+                gameOverText.setString("P" + std::to_string(winnerIndex + 1) + " Won!");
+            }
+        }
     }
     else
     {
@@ -739,7 +768,16 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
         resultsStr += "\nPlayer " + std::to_string(i + 1) + ": ";
         if (player->hasWon)
         {
-            resultsStr += std::to_string(playerManager.getScore(i)) + " pts (Won!)";
+            resultsStr += std::to_string(playerManager.getScore(i)) + " pts";
+            // Highlight the winner with the best score
+            if (numWinners > 1 && i == winnerIndex)
+            {
+                resultsStr += " (Best Score!)";
+            }
+            else
+            {
+                resultsStr += " (Won)";
+            }
         }
         else
         {
@@ -748,6 +786,26 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
     }
     resultsText.setString(resultsStr);
     resultsText.setPosition((WINDOW_WIDTH - resultsText.getGlobalBounds().width) / 2, 220);
+
+    // Add explanation text for multiple winners
+    Text explanationText;
+    explanationText.setCharacterSize(20);
+    explanationText.setFillColor(Color::Yellow);
+    explanationText.setFont(gameOverFont);
+
+    if (numWinners > 1)
+    {
+        if (playerManager.getNumPlayers() == 2 &&
+            playerManager.getScore(0) == playerManager.getScore(1))
+        {
+            explanationText.setString("Both players completed with the same score!");
+        }
+        else
+        {
+            explanationText.setString("Winner determined by best score!");
+        }
+        explanationText.setPosition((WINDOW_WIDTH - explanationText.getGlobalBounds().width) / 2, 190);
+    }
 
     int choice = 0;
     int keyTimer = 0;
@@ -809,6 +867,8 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
         window.draw(gameOverRectangele);
         window.draw(gameOverText);
         window.draw(resultsText);
+        if (numWinners > 1)
+            window.draw(explanationText);
         window.draw(retryText);
         window.draw(exitText);
 
