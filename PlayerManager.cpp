@@ -122,22 +122,28 @@ void PlayerManager::resetPlayers()
     gameClock.restart();
 }
 
-// Add new method to check if players have left spawn area
+// Modify the checkScoringStatus method to activate scoring after just one step
 void PlayerManager::checkScoringStatus()
 {
     for (int i = 0; i < numPlayers; i++)
     {
-        if (!scoringActive[i] && !players[i]->isDead && !players[i]->hasWon)
+        if (!players[i]->isDead && !players[i]->hasWon)
         {
             // Check if player has moved away from the spawn area
-            // The spawn area is at the bottom of the screen, so we check if they've moved up
             float spawnAreaY = WINDOW_HEIGHT - players[i]->getSprite().getGlobalBounds().height * 1.5;
             float currentY = players[i]->getSprite().getPosition().y;
 
-            // If the player has moved up at least one lane from spawn
-            if (currentY < spawnAreaY - LANE_HEIGHT)
+            // Activate scoring if player moves up at least one step
+            if (!scoringActive[i] && currentY < spawnAreaY - LANE_HEIGHT / 2)
             {
                 scoringActive[i] = true;
+            }
+
+            // Deactivate scoring if player returns to spawn area or below
+            // This prevents "cheating" by returning to spawn area
+            if (scoringActive[i] && currentY >= spawnAreaY)
+            {
+                scoringActive[i] = false;
             }
         }
     }
