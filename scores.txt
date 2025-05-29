@@ -21,3 +21,13 @@ Player 2: 11 points
 Game with 2 player(s):
 Player 1: 40 points
 -------------------------
+Game with 1 player(s):
+Player 1: 16 points
+-------------------------
+Game with 2 player(s):
+Player 2: 14 points
+-------------------------
+Game with 2 player(s):
+Player 1: 11 points
+Player 2: 23 points
+-------------------------

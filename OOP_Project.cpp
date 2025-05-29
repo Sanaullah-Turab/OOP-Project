@@ -5,17 +5,15 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Network.hpp>
 #include <cstdlib>
-// #include <Windows.h>
 #include "Frog.h"
 #include "Global.h"
 #include "Car.h"
 #include "Log.h"
-#include "PlayerManager.h" // Include the new PlayerManager
+#include "PlayerManager.h"
 
 using namespace sf;
 using namespace std;
 
-// Function Prototypes
 void StartScreen(RenderWindow &window);
 void PlayerSelectScreen(RenderWindow &window, int &numPlayers);
 void StartGame(RenderWindow &window, int numPlayers);
@@ -29,14 +27,13 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager);
 int main()
 {
     srand(time(0));
-    // creating window
     RenderWindow window(VideoMode(800, 600), "OOP Project", Style::Default);
     window.setFramerateLimit(30);
 
-    int numPlayers = 1; // Default to 1 player
+    int numPlayers = 1;
 
     StartScreen(window);
-    PlayerSelectScreen(window, numPlayers); // New player selection screen
+    PlayerSelectScreen(window, numPlayers);
     StartGame(window, numPlayers);
 
     return 0;
@@ -44,13 +41,12 @@ int main()
 
 void StartScreen(RenderWindow &window)
 {
-    // Gameobjects Initialization
     Texture backgroundImage;
     Sprite backgroundSprite;
     if (!backgroundImage.loadFromFile("Resources/Images/StartScreen.png"))
         cout << "could not load main menu image" << endl;
     backgroundSprite.setTexture(backgroundImage);
-    // Font initialization
+
     Font mainMenuFont;
     if (!mainMenuFont.loadFromFile("Resources/Fonts/Goldman-Regular.ttf"))
         cout << "could not load main menu font" << endl;
@@ -61,7 +57,6 @@ void StartScreen(RenderWindow &window)
     Text creditsText = startGameText;
     Text exitText = startGameText;
 
-    // Text initialization
     startGameText.setString("Start Game");
     startGameText.setPosition((WINDOW_WIDTH - startGameText.getGlobalBounds().width) / 2, 300);
     creditsText.setString("Credits");
@@ -69,7 +64,6 @@ void StartScreen(RenderWindow &window)
     exitText.setString("Exit");
     exitText.setPosition((WINDOW_WIDTH - exitText.getGlobalBounds().width) / 2, 440);
 
-    // sounds initialization
     SoundBuffer menuSelectSoundBuffer;
     menuSelectSoundBuffer.loadFromFile("Resources/Sounds/gta-menu.wav");
     SoundBuffer menuMoveSoundBuffer;
@@ -80,7 +74,6 @@ void StartScreen(RenderWindow &window)
     int keyTimer = 0;
     int keyCooldown = 10;
 
-    // Main game loop
     while (window.isOpen())
     {
         Event event;
@@ -99,7 +92,6 @@ void StartScreen(RenderWindow &window)
             {
                 sound.setBuffer(menuSelectSoundBuffer);
                 sound.play();
-                // credits
             }
             else if (Keyboard::isKeyPressed(Keyboard::Enter) && choice == 2)
             {
@@ -109,7 +101,7 @@ void StartScreen(RenderWindow &window)
                 window.close();
             }
         }
-        // Menu selection
+
         if (Keyboard::isKeyPressed(Keyboard::Up) && keyTimer >= keyCooldown)
         {
             sound.setBuffer(menuMoveSoundBuffer);
@@ -148,33 +140,27 @@ void StartScreen(RenderWindow &window)
             break;
         }
 
-        // Clear
         window.clear();
-        // Draw Stuff
         window.draw(backgroundSprite);
         window.draw(startGameText);
         window.draw(creditsText);
         window.draw(exitText);
-        // Display
         window.display();
     }
 }
 
 void PlayerSelectScreen(RenderWindow &window, int &numPlayers)
 {
-    // Gameobjects Initialization
     Texture backgroundImage;
     Sprite backgroundSprite;
     if (!backgroundImage.loadFromFile("Resources/Images/StartScreen.png"))
         cout << "could not load player select image" << endl;
     backgroundSprite.setTexture(backgroundImage);
 
-    // Font initialization
     Font font;
     if (!font.loadFromFile("Resources/Fonts/Goldman-Regular.ttf"))
         cout << "could not load font" << endl;
 
-    // Title text
     Text titleText;
     titleText.setCharacterSize(60);
     titleText.setFillColor(Color::White);
@@ -182,7 +168,6 @@ void PlayerSelectScreen(RenderWindow &window, int &numPlayers)
     titleText.setString("Select Players");
     titleText.setPosition((WINDOW_WIDTH - titleText.getGlobalBounds().width) / 2, 150);
 
-    // Option texts
     Text onePlayerText;
     onePlayerText.setCharacterSize(50);
     onePlayerText.setFillColor(Color::White);
@@ -197,7 +182,6 @@ void PlayerSelectScreen(RenderWindow &window, int &numPlayers)
     twoPlayerText.setString("2 Players");
     twoPlayerText.setPosition((WINDOW_WIDTH - twoPlayerText.getGlobalBounds().width) / 2, 370);
 
-    // sounds initialization
     SoundBuffer menuSelectSoundBuffer;
     menuSelectSoundBuffer.loadFromFile("Resources/Sounds/gta-menu.wav");
     SoundBuffer menuMoveSoundBuffer;
@@ -208,7 +192,6 @@ void PlayerSelectScreen(RenderWindow &window, int &numPlayers)
     int keyTimer = 0;
     int keyCooldown = 10;
 
-    // Main loop
     while (window.isOpen())
     {
         Event event;
@@ -221,12 +204,11 @@ void PlayerSelectScreen(RenderWindow &window, int &numPlayers)
                 sound.setBuffer(menuSelectSoundBuffer);
                 sound.play();
                 sleep(milliseconds(300));
-                numPlayers = choice + 1; // Set number of players (1 or 2)
+                numPlayers = choice + 1;
                 return;
             }
         }
 
-        // Menu selection
         if (Keyboard::isKeyPressed(Keyboard::Up) && keyTimer >= keyCooldown)
         {
             sound.setBuffer(menuMoveSoundBuffer);
@@ -247,7 +229,6 @@ void PlayerSelectScreen(RenderWindow &window, int &numPlayers)
         }
         keyTimer++;
 
-        // Update text colors based on selection
         switch (choice)
         {
         case 0:
@@ -260,7 +241,6 @@ void PlayerSelectScreen(RenderWindow &window, int &numPlayers)
             break;
         }
 
-        // Draw
         window.clear();
         window.draw(backgroundSprite);
         window.draw(titleText);
@@ -272,42 +252,35 @@ void PlayerSelectScreen(RenderWindow &window, int &numPlayers)
 
 void StartGame(RenderWindow &window, int numPlayers)
 {
-    // Initialize PlayerManager instead of a single player
     PlayerManager playerManager(window);
     playerManager.setNumPlayers(numPlayers);
 
     bool isGameOver = false;
 
-    // Gameobjects Initialization
     Texture backgroundImage;
     Sprite backgroundSprite;
     backgroundImage.loadFromFile("Resources/Images/Background.png");
     backgroundSprite.setTexture(backgroundImage);
 
-    // player movement support
     IntRect texRect1(0, CELL_SIZE, CELL_SIZE, CELL_SIZE);
     IntRect texRect2(0, CELL_SIZE, CELL_SIZE, CELL_SIZE);
     int keyCooldown = 5;
     int keyTimer1 = 0;
-    int keyTimer2 = 0; // Separate timer for player 2
+    int keyTimer2 = 0;
 
-    // car spawner support
     vector<Car> cars;
     int carSpawnCooldown = 20;
     int carSpawnTimer = 0;
 
-    // Log spawner support
     vector<Log> logs;
     int logSpawnCooldown = 20;
     int logSpawnTimer = 0;
 
-    // sounds initialization
     SoundBuffer moveSoundBuffer;
     moveSoundBuffer.loadFromFile("Resources/Sounds/jump-sound2.wav");
     Sound sound;
     sound.setBuffer(moveSoundBuffer);
 
-    // Main game loop
     while (window.isOpen())
     {
         Event event;
@@ -317,19 +290,11 @@ void StartGame(RenderWindow &window, int numPlayers)
                 window.close();
         }
 
-        // Check if players have left spawn area (to activate scoring)
         playerManager.checkScoringStatus();
-
-        // Update player scores
         playerManager.updateScores();
-
-        // Check for new deaths
         playerManager.checkForDeaths();
-
-        // Update death timers
         playerManager.updateDeathTimers();
 
-        // Handle player 1 movement
         Frog *player1 = playerManager.getPlayer(0);
         if (player1 && !player1->isDead && !player1->hasWon)
         {
@@ -337,7 +302,6 @@ void StartGame(RenderWindow &window, int numPlayers)
             PlayerMovement(*player1, texRect1, keyCooldown, keyTimer1, sound, 0);
         }
 
-        // Handle player 2 movement if 2-player mode
         if (numPlayers == 2)
         {
             Frog *player2 = playerManager.getPlayer(1);
@@ -354,11 +318,9 @@ void StartGame(RenderWindow &window, int numPlayers)
             Frog *player = playerManager.getPlayer(i);
             bool isOnLog = false;
 
-            // Skip if player has already won or is dead
             if (player->hasWon || player->isDead)
                 continue;
 
-            // Collision detection with logs
             for (int j = 0; j < logs.size(); j++)
             {
                 if (player->getSprite().getGlobalBounds().intersects(logs[j].getSprite().getGlobalBounds()))
@@ -368,7 +330,6 @@ void StartGame(RenderWindow &window, int numPlayers)
                 }
             }
 
-            // Collision detection with cars
             for (int j = 0; j < cars.size(); j++)
             {
                 if (player->getSprite().getGlobalBounds().intersects(cars[j].getSprite().getGlobalBounds()))
@@ -378,53 +339,40 @@ void StartGame(RenderWindow &window, int numPlayers)
                 }
             }
 
-            // Collision detection with water
             if (player->getSprite().getPosition().y < 280 && !isOnLog)
             {
                 player->isDead = true;
             }
         }
 
-        // spawners
         CarSpawner(carSpawnTimer, carSpawnCooldown, cars);
         ObjectRemover(cars);
         LogSpawner(logSpawnTimer, logSpawnCooldown, logs);
         ObjectRemover(logs);
 
-        // Clear
         window.clear();
-
-        // Draw Stuff
         window.draw(backgroundSprite);
 
-        // drawing logs
         for (int i = 0; i < logs.size(); i++)
         {
             logs[i].Move();
             window.draw(logs[i].getSprite());
         }
 
-        // Draw all players
         playerManager.drawPlayers();
 
-        // drawing cars
         for (int i = 0; i < cars.size(); i++)
         {
             cars[i].Move();
             window.draw(cars[i].getSprite());
         }
 
-        // Draw scores
         playerManager.drawScores();
-
-        // Draw death messages
         playerManager.drawDeathMessages();
-
-        // Display
         window.display();
 
-        // Check game over conditions
-        bool allPlayersFinished = true; // Either dead or won
+        // Check if game is over (all players either dead or won)
+        bool allPlayersFinished = true;
         for (int i = 0; i < numPlayers; i++)
         {
             Frog *player = playerManager.getPlayer(i);
@@ -435,15 +383,12 @@ void StartGame(RenderWindow &window, int numPlayers)
             }
         }
 
-        // Game is over if all players are either dead or have won
         if (allPlayersFinished)
         {
-            // Save scores if any player has won
             playerManager.saveScores();
 
             if (GameOver(window, playerManager))
             {
-                // Reset game for a new round
                 for (int i = logs.size() - 1; i >= 0; i--)
                 {
                     logs.erase(logs.begin() + i);
@@ -465,13 +410,11 @@ void StartGame(RenderWindow &window, int numPlayers)
 
 void PlayerMovement(Frog &player, IntRect &texRect, int &keyCooldown, int &keyTimer, Sound &sound, int playerIndex)
 {
-    // Skip if player is dead or has won
     if (player.isDead || player.hasWon)
         return;
 
     if (playerIndex == 0)
     {
-        // Player 1 controls (WASD)
         if ((Keyboard::isKeyPressed(Keyboard::W)) && keyTimer >= keyCooldown)
         {
             sound.play();
@@ -519,7 +462,6 @@ void PlayerMovement(Frog &player, IntRect &texRect, int &keyCooldown, int &keyTi
     }
     else if (playerIndex == 1)
     {
-        // Player 2 controls (Arrow keys)
         if ((Keyboard::isKeyPressed(Keyboard::Up)) && keyTimer >= keyCooldown)
         {
             sound.play();
@@ -579,6 +521,7 @@ void CarSpawner(int &carSpawnTimer, int &carSpawnCooldown, vector<Car> &cars)
     int randomLane = (rand() % 4) + 4;
     cars.push_back(Car(randomCarType, randomLane));
 }
+
 void ObjectRemover(vector<Car> &cars)
 {
     for (int i = 0; i < cars.size(); i++)
@@ -589,6 +532,7 @@ void ObjectRemover(vector<Car> &cars)
         }
     }
 }
+
 void ObjectRemover(vector<Log> &logs)
 {
     for (int i = 0; i < logs.size(); i++)
@@ -599,6 +543,7 @@ void ObjectRemover(vector<Log> &logs)
         }
     }
 }
+
 void LogSpawner(int &logSpawnTimer, int &logSpawnCooldown, vector<Log> &logs)
 {
     if (logSpawnTimer < logSpawnCooldown)
@@ -610,7 +555,8 @@ void LogSpawner(int &logSpawnTimer, int &logSpawnCooldown, vector<Log> &logs)
     int randomLogType = rand() % 3;
     int randomLane = rand() % 4;
     int tries = 0;
-    // collision free spawning
+
+    // Collision-free spawning logic
     bool isIntersecting = true;
     if (logs.size() > 0)
     {
@@ -635,9 +581,9 @@ void LogSpawner(int &logSpawnTimer, int &logSpawnCooldown, vector<Log> &logs)
         logs.push_back(Log(randomLogType, randomLane));
     }
 }
+
 bool GameOver(RenderWindow &window, PlayerManager &playerManager)
 {
-    // sound initialization
     SoundBuffer menuSelectSoundBuffer;
     menuSelectSoundBuffer.loadFromFile("Resources/Sounds/gta-menu.wav");
     SoundBuffer menuMoveSoundBuffer;
@@ -669,25 +615,21 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
         sound.play();
     }
 
-    // Game Over background sprite initialization
     Texture backgroundTexture;
     backgroundTexture.loadFromFile("Resources/Images/Background.png");
     backgroundTexture.update(window);
     Sprite gameOverSprite;
     gameOverSprite.setTexture(backgroundTexture);
 
-    // initializing game over rectangle
     RectangleShape gameOverRectangele;
     gameOverRectangele.setSize(Vector2f(500, 400));
     gameOverRectangele.setFillColor(Color(0, 0, 0, 200));
     gameOverRectangele.setPosition((WINDOW_WIDTH - gameOverRectangele.getGlobalBounds().width) / 2, (WINDOW_HEIGHT - gameOverRectangele.getGlobalBounds().height) / 2);
 
-    // font initialization
     Font gameOverFont;
     if (!gameOverFont.loadFromFile("Resources/Fonts/Goldman-Regular.ttf"))
         cout << "could not load game over menu font" << endl;
 
-    // game over menu button text initialization
     Text retryText;
     retryText.setCharacterSize(50);
     retryText.setFillColor(Color::White);
@@ -702,18 +644,16 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
     exitText.setString("Exit");
     exitText.setPosition((WINDOW_WIDTH - exitText.getGlobalBounds().width) / 2, 370);
 
-    // GameOver Text initialization
     Text gameOverText;
     gameOverText.setCharacterSize(70);
     gameOverText.setFillColor(Color::Green);
     gameOverText.setFont(gameOverFont);
 
-    // Track the overall winner (player with highest score)
+    // Determine winner logic
     int winnerIndex = -1;
     int highestScore = -1;
     int numWinners = 0;
 
-    // Count how many players won and find the player with highest score
     for (int i = 0; i < playerManager.getNumPlayers(); i++)
     {
         if (playerManager.getPlayer(i)->hasWon)
@@ -730,22 +670,18 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
 
     if (anyPlayerWon)
     {
-        // If only one player won, declare that player the winner
         if (numWinners == 1)
         {
             gameOverText.setString("P" + std::to_string(winnerIndex + 1) + " Won!");
         }
-        // If multiple players won (in 2-player mode this means both players)
         else if (numWinners > 1)
         {
-            // If there's a tie (both players have the same score)
             if (playerManager.getNumPlayers() == 2 &&
                 playerManager.getScore(0) == playerManager.getScore(1) &&
                 playerManager.getPlayer(0)->hasWon && playerManager.getPlayer(1)->hasWon)
             {
                 gameOverText.setString("It's a Tie!");
             }
-            // Otherwise, declare the player with higher score as winner
             else
             {
                 gameOverText.setString("P" + std::to_string(winnerIndex + 1) + " Won!");
@@ -758,7 +694,6 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
     }
     gameOverText.setPosition((WINDOW_WIDTH - gameOverText.getGlobalBounds().width) / 2, 130);
 
-    // Show results for all players
     Text resultsText;
     resultsText.setCharacterSize(30);
     resultsText.setFillColor(Color::White);
@@ -772,7 +707,6 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
         if (player->hasWon)
         {
             resultsStr += std::to_string(playerManager.getScore(i)) + " pts";
-            // Highlight the winner with the best score
             if (numWinners > 1 && i == winnerIndex)
             {
                 resultsStr += " (Best Score!)";
@@ -790,7 +724,6 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
     resultsText.setString(resultsStr);
     resultsText.setPosition((WINDOW_WIDTH - resultsText.getGlobalBounds().width) / 2, 220);
 
-    // Add explanation text for multiple winners
     Text explanationText;
     explanationText.setCharacterSize(20);
     explanationText.setFillColor(Color::Yellow);
@@ -832,7 +765,7 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
                     return false;
             }
         }
-        // Menu selection
+
         if (Keyboard::isKeyPressed(Keyboard::Up) && keyTimer >= keyCooldown)
         {
             sound.setBuffer(menuMoveSoundBuffer);
@@ -865,7 +798,6 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
             break;
         }
 
-        // Draw
         window.draw(gameOverSprite);
         window.draw(gameOverRectangele);
         window.draw(gameOverText);
@@ -875,7 +807,6 @@ bool GameOver(RenderWindow &window, PlayerManager &playerManager)
         window.draw(retryText);
         window.draw(exitText);
 
-        // display
         window.display();
     }
 }

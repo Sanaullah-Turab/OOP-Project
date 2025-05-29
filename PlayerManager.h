@@ -7,17 +7,18 @@
 #include <vector>
 
 using namespace sf;
+using namespace std;
 
 class PlayerManager
 {
 private:
     int numPlayers;
-    std::vector<Frog *> players;
-    std::vector<int> scores;
-    std::vector<bool> scoringActive; // New flag to track if scoring is active for each player
-    std::vector<Clock> deathClocks;
-    std::vector<bool> playerRemoved;
-    std::vector<Text> deathMessages;
+    vector<Frog *> players;
+    vector<int> scores;
+    vector<bool> scoringActive; // Tracks if scoring is active for each player
+    vector<Clock> deathClocks;
+    vector<bool> playerRemoved;
+    vector<Text> deathMessages;
     Font messageFont;
     Clock gameClock;
     RenderWindow &window;
@@ -38,7 +39,7 @@ public:
 
     void checkForDeaths();
     void updateDeathTimers();
-    void checkScoringStatus(); // New method to check if players have left spawn area
+    void checkScoringStatus();
     void drawPlayers();
     void drawScores();
     void drawDeathMessages();
