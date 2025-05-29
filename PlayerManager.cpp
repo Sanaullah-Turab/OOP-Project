@@ -7,6 +7,7 @@ PlayerManager::PlayerManager(RenderWindow &window) : window(window), numPlayers(
     // Create initial player
     players.push_back(new Frog(window));
     scores.push_back(0);
+    scoringActive.push_back(false); // Start with scoring inactive
     deathClocks.push_back(Clock());
     playerRemoved.push_back(false);
 
@@ -37,6 +38,7 @@ PlayerManager::~PlayerManager()
     }
     players.clear();
     scores.clear();
+    scoringActive.clear();
     deathClocks.clear();
     playerRemoved.clear();
     deathMessages.clear();
@@ -56,6 +58,7 @@ void PlayerManager::setNumPlayers(int num)
     }
     players.clear();
     scores.clear();
+    scoringActive.clear(); // Clear scoring active flags
     deathClocks.clear();
     playerRemoved.clear();
     deathMessages.clear();
@@ -67,6 +70,7 @@ void PlayerManager::setNumPlayers(int num)
     {
         players.push_back(new Frog(window));
         scores.push_back(0);
+        scoringActive.push_back(false); // Start with scoring inactive
         deathClocks.push_back(Clock());
         playerRemoved.push_back(false);
 
@@ -105,6 +109,7 @@ void PlayerManager::resetPlayers()
 
         players[i]->isDead = false;
         playerRemoved[i] = false;
+        scoringActive[i] = false; // Reset scoring status
         deathClocks[i].restart();
     }
 
@@ -117,14 +122,36 @@ void PlayerManager::resetPlayers()
     gameClock.restart();
 }
 
+// Add new method to check if players have left spawn area
+void PlayerManager::checkScoringStatus()
+{
+    for (int i = 0; i < numPlayers; i++)
+    {
+        if (!scoringActive[i] && !players[i]->isDead && !players[i]->hasWon)
+        {
+            // Check if player has moved away from the spawn area
+            // The spawn area is at the bottom of the screen, so we check if they've moved up
+            float spawnAreaY = WINDOW_HEIGHT - players[i]->getSprite().getGlobalBounds().height * 1.5;
+            float currentY = players[i]->getSprite().getPosition().y;
+
+            // If the player has moved up at least one lane from spawn
+            if (currentY < spawnAreaY - LANE_HEIGHT)
+            {
+                scoringActive[i] = true;
+            }
+        }
+    }
+}
+
+// Modify updateScores to only increase score if scoring is active
 void PlayerManager::updateScores()
 {
     float timeElapsed = gameClock.getElapsedTime().asSeconds();
 
-    // Update scores for active players (not won yet and not dead)
+    // Update scores for active players (not won yet, not dead, and scoring active)
     for (int i = 0; i < numPlayers; i++)
     {
-        if (!players[i]->hasWon && !players[i]->isDead)
+        if (!players[i]->hasWon && !players[i]->isDead && scoringActive[i])
         {
             // Points based on time survived (1 point per second)
             scores[i] = static_cast<int>(timeElapsed);
@@ -270,6 +297,10 @@ void PlayerManager::drawScores()
         else if (players[i]->hasWon)
         {
             scoreStr += " (Won!)";
+        }
+        else if (!scoringActive[i])
+        {
+            scoreStr += " (Move to start scoring)";
         }
 
         scoreText.setString(scoreStr);

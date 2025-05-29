@@ -14,10 +14,11 @@ private:
     int numPlayers;
     std::vector<Frog *> players;
     std::vector<int> scores;
-    std::vector<Clock> deathClocks;  // Track time since death
-    std::vector<bool> playerRemoved; // Track if player has been removed
-    std::vector<Text> deathMessages; // Death messages to display
-    Font messageFont;                // Font for messages
+    std::vector<bool> scoringActive; // New flag to track if scoring is active for each player
+    std::vector<Clock> deathClocks;
+    std::vector<bool> playerRemoved;
+    std::vector<Text> deathMessages;
+    Font messageFont;
     Clock gameClock;
     RenderWindow &window;
 
@@ -35,11 +36,12 @@ public:
     Frog *getPlayer(int index);
     int getScore(int index) const;
 
-    void checkForDeaths();    // Check for new deaths
-    void updateDeathTimers(); // Update death timers and remove players
+    void checkForDeaths();
+    void updateDeathTimers();
+    void checkScoringStatus(); // New method to check if players have left spawn area
     void drawPlayers();
     void drawScores();
-    void drawDeathMessages(); // Draw death messages
+    void drawDeathMessages();
 
     bool isAnyPlayerAlive() const;
     bool haveAllPlayersWon() const;

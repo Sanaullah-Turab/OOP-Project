@@ -317,6 +317,9 @@ void StartGame(RenderWindow &window, int numPlayers)
                 window.close();
         }
 
+        // Check if players have left spawn area (to activate scoring)
+        playerManager.checkScoringStatus();
+
         // Update player scores
         playerManager.updateScores();
 
